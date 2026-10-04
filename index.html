@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Визуальная новелла</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --crt-color: #4ade80;
+    --gold:      #ffd166;
+    --gray-gold: #b8a76a;
+    --text-outline:
+      -1px -1px 0 #000,
+       1px -1px 0 #000,
+      -1px  1px 0 #000,
+       1px  1px 0 #000,
+       0 0 6px rgba(74, 222, 128, 0.9),
+       0 0 12px rgba(74, 222, 128, 0.5);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: "VT323", "Courier New", monospace;
+    background: #000; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+  }
+
+  #game {
+    position: relative;
+    width: 100vw; height: 100vh;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.9);
+    animation: flicker 0.15s infinite;
+  }
+
+  #background {
+    position: absolute; inset: 0;
+    background: url("location1.jpg") center/cover no-repeat;
+    background-color: #1a1a1a;
+    transition: background-image 0.4s ease-in-out, background-color 0.4s ease-in-out;
+    filter: sepia(1) hue-rotate(90deg) saturate(3) brightness(0.8);
+  }
+
+  #crt-overlay {
+    position: absolute; inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.2),
+      rgba(0, 0, 0, 0.2) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    border-radius: 10px;
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8), inset 0 0 50px rgba(74, 222, 128, 0.1);
+  }
+
+  @keyframes flicker {
+    0% { opacity: 0.98; }
+    50% { opacity: 1; }
+    100% { opacity: 0.98; }
+  }
+
+  #ui-top {
+    position: absolute;
+    top: 50%; left: 24px;
+    transform: translateY(-50%);
+    width: 65%; max-width: 900px;
+    display: flex; flex-direction: column; gap: 20px;
+    pointer-events: none;
+  }
+  #ui-top > * { pointer-events: auto; }
+
+  #dialogue-box {
+    position: relative; width: 100%;
+    padding: 16px 22px 20px 22px;
+    background: rgba(0, 0, 0, 0.78);
+    border: 2px solid var(--crt-color);
+    border-radius: 4px;
+    color: #d1fae5;
+    font-size: 32px; line-height: 1.4; letter-spacing: 1px;
+    text-align: left;
+    text-shadow: var(--text-outline);
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.35);
+  }
+  #speaker {
+    color: #4ade80; font-weight: 400;
+    margin-bottom: 8px; font-size: 30px;
+    letter-spacing: 2px; text-align: left;
+    text-shadow: var(--text-outline);
+  }
+  #text { white-space: pre-line; text-align: left; color: #fff; }
+  #hint {
+    position: absolute; right: 12px; bottom: 6px;
+    font-size: 20px; color: rgba(74, 222, 128, 0.9);
+    letter-spacing: 1px;
+    animation: blink 1.4s infinite;
+    text-shadow: 1px 1px 0 #000, 0 0 6px rgba(74, 222, 128, 0.8);
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 0.3; }
+    50%      { opacity: 1; }
+  }
+
+  #choices {
+    position: relative; width: 100%;
+    display: flex; flex-direction: row;
+    flex-wrap: wrap; justify-content: flex-start;
+    gap: 14px;
+  }
+  .choice {
+    flex: 0 1 auto;
+    padding: 12px 22px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid var(--crt-color);
+    border-radius: 4px;
+    color: #fff;
+    font-family: inherit; font-size: 26px;
+    letter-spacing: 1px; cursor: pointer;
+    transition: all 0.2s; text-align: left;
+    text-shadow: var(--text-outline);
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.4), inset 0 0 8px rgba(74, 222, 128, 0.15);
+  }
+  .choice:hover, .choice:active {
+    background: var(--crt-color);
+    color: #000; text-shadow: none;
+    box-shadow: 0 0 20px var(--crt-color), 0 0 40px rgba(74, 222, 128, 0.5);
+    transform: translateX(4px);
+  }
+
+  .next-btn {
+    align-self: flex-start;
+    padding: 12px 42px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid var(--crt-color);
+    border-radius: 4px;
+    color: #fff;
+    font-family: inherit; font-size: 28px;
+    letter-spacing: 3px; cursor: pointer;
+    transition: all 0.2s; text-align: left;
+    text-shadow: var(--text-outline);
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.4), inset 0 0 10px rgba(74, 222, 128, 0.2);
+  }
+  .next-btn:hover, .next-btn:active {
+    background: var(--crt-color);
+    color: #000; text-shadow: none;
+    box-shadow: 0 0 20px var(--crt-color);
+  }
+
+  #input-area {
+    position: absolute; top: 50%; left: 24px;
+    transform: translateY(-50%);
+    width: 60%; max-width: 600px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.92);
+    border: 2px solid var(--crt-color);
+    border-radius: 4px;
+    color: var(--crt-color);
+    display: flex; flex-direction: column; gap: 16px;
+    box-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+    cursor: default; text-align: left;
+  }
+  #input-area label {
+    display: flex; flex-direction: column; gap: 6px;
+    font-size: 24px; color: #4ade80;
+    letter-spacing: 1px;
+    text-shadow: var(--text-outline);
+  }
+  #input-area input {
+    padding: 8px 0; font-size: 24px;
+    font-family: inherit; letter-spacing: 1px;
+    border: none; border-bottom: 2px solid var(--crt-color);
+    background: transparent; color: #fff;
+    outline: none; text-shadow: 0 0 5px #fff;
+  }
+  #input-area input:focus {
+    border-bottom-color: #fff;
+    box-shadow: 0 2px 10px #fff;
+  }
+  #submit-info {
+    margin-top: 6px; padding: 12px 24px;
+    font-size: 24px; font-family: inherit;
+    letter-spacing: 2px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--crt-color);
+    border-radius: 4px; color: #fff;
+    cursor: pointer; transition: all 0.15s;
+    text-align: left;
+    text-shadow: var(--text-outline);
+  }
+  #submit-info:hover, #submit-info:active {
+    background: var(--crt-color);
+    color: #000; text-shadow: none;
+    box-shadow: 0 0 15px var(--crt-color);
+  }
+
+  .hidden { display: none !important; }
+
+  #main-menu {
+    position: fixed; inset: 0;
+    z-index: 500;
+    background: url("menu.jpg") center/cover no-repeat, #000;
+    background-color: #000;
+    filter: sepia(1) hue-rotate(90deg) saturate(3) brightness(0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 4vh 4vw;
+    animation: flicker 0.15s infinite;
+  }
+
+  #menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 4vh;
+  }
+  .menu-btn {
+    width: 100%;
+    max-width: 520px;
+    padding: 16px 32px;
+    background: rgba(0, 0, 0, 0.75);
+    border: 2px solid #4ade80;
+    border-radius: 4px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 32px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    text-shadow: var(--text-outline);
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.5), inset 0 0 8px rgba(74, 222, 128, 0.2);
+  }
+  .menu-btn:hover, .menu-btn:active {
+    background: #4ade80;
+    color: #000;
+    text-shadow: none;
+    box-shadow: 0 0 25px #4ade80, 0 0 50px rgba(74, 222, 128, 0.6);
+    transform: scale(1.02);
+  }
+  .menu-btn.danger {
+    border-color: #f87171;
+    color: #f87171;
+    box-shadow: 0 0 10px rgba(248, 113, 113, 0.5), inset 0 0 8px rgba(248, 113, 113, 0.2);
+  }
+  .menu-btn.danger:hover {
+    background: #f87171;
+    color: #000;
+    box-shadow: 0 0 25px #f87171, 0 0 50px rgba(248, 113, 113, 0.6);
+  }
+  .menu-btn.small {
+    font-size: 24px;
+    padding: 12px 24px;
+    max-width: 380px;
+  }
+
+  .panel {
+    position: fixed; inset: 0;
+    z-index: 600;
+    background: rgba(0, 0, 0, 0.94);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4vh 4vw;
+    overflow-y: auto;
+    animation: flicker 0.15s infinite;
+  }
+  .panel::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.25),
+      rgba(0, 0, 0, 0.25) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+  .panel h2 {
+    color: #4ade80;
+    font-size: 52px;
+    letter-spacing: 4px;
+    margin-bottom: 4vh;
+    text-shadow: 0 0 10px #4ade80, 0 0 25px #4ade80;
+    text-align: center;
+  }
+
+  #achievements-list {
+    width: 100%;
+    max-width: 780px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 4vh;
+  }
+  .ach {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(74, 222, 128, 0.35);
+    border-radius: 4px;
+    color: #fff;
+    text-shadow: var(--text-outline);
+    transition: all 0.2s;
+  }
+  .ach.unlocked {
+    border-color: #4ade80;
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+  }
+  .ach.locked {
+    opacity: 0.55;
+    filter: grayscale(1);
+  }
+
+  .ach.unlocked.type-normal  { border-color: var(--crt-color);  box-shadow: 0 0 10px rgba(74,222,128,0.5); }
+  .ach.unlocked.type-ending  { border-color: var(--gold);       box-shadow: 0 0 12px rgba(255,209,102,0.6); }
+  .ach.unlocked.type-secret  { border-color: var(--gray-gold);  box-shadow: 0 0 12px rgba(184,167,106,0.6); }
+
+  .ach.unlocked.type-normal  .ach-title { color: var(--crt-color); }
+  .ach.unlocked.type-ending  .ach-title { color: var(--gold); }
+  .ach.unlocked.type-secret  .ach-title { color: var(--gray-gold); }
+
+  .ach-icon {
+    font-size: 40px;
+    min-width: 50px;
+    text-align: center;
+  }
+  .ach-text {
+    display: flex;
+    flex-direction: column;
+  }
+  .ach-title {
+    font-size: 26px;
+    color: #4ade80;
+    letter-spacing: 1px;
+  }
+  .ach.locked .ach-title { color: #888; }
+  .ach-desc {
+    font-size: 20px;
+    color: #d1fae5;
+  }
+
+  #settings-panel {
+    justify-content: flex-start;
+  }
+  .setting-row {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #4ade80;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 28px;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    text-shadow: var(--text-outline);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .setting-row:hover { background: rgba(74, 222, 128, 0.15); }
+  .setting-row .val {
+    color: #4ade80;
+    font-size: 24px;
+  }
+
+  .settings-block {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 520px;
+    margin-bottom: 4vh;
+    align-items: stretch;
+  }
+
+  #dlc-input-area {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  #dlc-code {
+    flex: 1;
+    padding: 14px 18px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #4ade80;
+    border-radius: 4px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 28px;
+    letter-spacing: 4px;
+    text-align: center;
+    outline: none;
+    text-shadow: 0 0 6px #4ade80;
+  }
+  #dlc-code::placeholder {
+    color: rgba(74, 222, 128, 0.4);
+    letter-spacing: 1px;
+  }
+
+  .dlc-error {
+    color: #f87171 !important;
+    animation: shake 0.3s;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  #ach-toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 900;
+    min-width: 320px;
+    max-width: 420px;
+    padding: 16px 20px;
+    background: rgba(0, 0, 0, 0.92);
+    border: 2px solid var(--crt-color);
+    border-radius: 6px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-shadow: var(--text-outline);
+    box-shadow: 0 0 20px rgba(74, 222, 128, 0.6), inset 0 0 12px rgba(74, 222, 128, 0.15);
+    opacity: 0;
+    transform: translateY(30px);
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  #ach-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  #ach-toast.type-normal {
+    border-color: var(--crt-color);
+    box-shadow: 0 0 20px rgba(74, 222, 128, 0.6);
+  }
+  #ach-toast.type-ending {
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(255, 209, 102, 0.7), inset 0 0 12px rgba(255, 209, 102, 0.2);
+  }
+  #ach-toast.type-secret {
+    border-color: var(--gray-gold);
+    box-shadow: 0 0 20px rgba(184, 167, 106, 0.7), inset 0 0 12px rgba(184, 167, 106, 0.2);
+  }
+  #ach-toast.type-normal .toast-title { color: var(--crt-color); }
+  #ach-toast.type-ending .toast-title { color: var(--gold); }
+  #ach-toast.type-secret .toast-title { color: var(--gray-gold); }
+
+  .toast-icon {
+    font-size: 46px;
+    min-width: 56px;
+    text-align: center;
+  }
+  .toast-text { display: flex; flex-direction: column; }
+  .toast-label {
+    font-size: 18px;
+    color: #d1fae5;
+    letter-spacing: 2px;
+    margin-bottom: 2px;
+  }
+  .toast-title {
+    font-size: 26px;
+    letter-spacing: 1px;
+  }
+
+  @media (max-width: 600px) {
+    #ui-top {
+      top: 50%; left: 5%;
+      transform: translateY(-50%);
+      width: 90%; gap: 14px;
+    }
+    #dialogue-box {
+      padding: 12px 14px 14px 14px;
+      font-size: 22px; line-height: 1.3;
+    }
+    #speaker { font-size: 20px; margin-bottom: 4px; }
+    #hint { font-size: 14px; bottom: 4px; right: 8px; }
+    #choices { flex-direction: column; gap: 10px; }
+    .choice { font-size: 20px; padding: 12px 14px; width: 100%; }
+    .next-btn { font-size: 22px; padding: 12px 20px; width: 100%; }
+    #input-area {
+      top: 50%; left: 5%;
+      transform: translateY(-50%);
+      width: 90%; padding: 15px; gap: 10px;
+    }
+    #input-area label { font-size: 18px; }
+    #input-area input { font-size: 18px; }
+    #submit-info { font-size: 20px; padding: 10px; }
+
+    .menu-btn {
+      font-size: 22px;
+      padding: 14px 18px;
+      letter-spacing: 1px;
+    }
+    .panel h2 { font-size: 34px; letter-spacing: 2px; }
+    .ach-icon { font-size: 30px; min-width: 36px; }
+    .ach-title { font-size: 20px; }
+    .ach-desc { font-size: 16px; }
+    .setting-row { font-size: 20px; padding: 12px 16px; }
+    .setting-row .val { font-size: 18px; }
+    #dlc-code { font-size: 20px; letter-spacing: 2px; }
+
+    #ach-toast {
+      right: 12px;
+      left: 12px;
+      bottom: 12px;
+      min-width: 0;
+      max-width: none;
+      padding: 12px 14px;
+    }
+    .toast-icon { font-size: 34px; min-width: 42px; }
+    .toast-title { font-size: 20px; }
+    .toast-label { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="main-menu">
+  <div id="menu-buttons">
+    <button class="menu-btn" id="btn-start">НАЧАТЬ ИГРУ</button>
+    <button class="menu-btn" id="btn-achievements">ДОСТИЖЕНИЯ</button>
+    <button class="menu-btn" id="btn-settings">НАСТРОЙКИ</button>
+  </div>
+</div>
+
+<div id="achievements-panel" class="panel hidden">
+  <h2>ДОСТИЖЕНИЯ</h2>
+  <div id="achievements-list"></div>
+  <button class="menu-btn small" onclick="closePanel('achievements')">НАЗАД</button>
+</div>
+
+<div id="settings-panel" class="panel hidden">
+  <h2>НАСТРОЙКИ</h2>
+
+  <div class="settings-block">
+    <div class="setting-row" data-toggle="sound">
+      <span>🔊 Звуки</span>
+      <span class="val" id="val-sound">ВКЛ</span>
+    </div>
+    <div class="setting-row" data-toggle="music">
+      <span>🎵 Музыка</span>
+      <span class="val" id="val-music">ВКЛ</span>
+    </div>
+  </div>
+
+  <div class="settings-block">
+    <button class="menu-btn danger small" onclick="resetSaves()">СБРОСИТЬ СОХРАНЕНИЯ</button>
+    <button class="menu-btn small" id="btn-dlc">DLC</button>
+    <div id="dlc-input-area" class="hidden">
+      <input type="text" id="dlc-code" placeholder="ВВЕДИТЕ КОД" maxlength="20" autocomplete="off">
+      <button class="menu-btn small" style="max-width:100px; margin:0;" onclick="checkDlc()">OK</button>
+    </div>
+  </div>
+
+  <button class="menu-btn small" onclick="closePanel('settings')">НАЗАД</button>
+</div>
+
+<div id="game" class="hidden">
+  <div id="background"></div>
+  <div id="crt-overlay"></div>
+
+  <div id="ui-top">
+    <div id="dialogue-box" class="hidden">
+      <div id="speaker"></div>
+      <div id="text"></div>
+      <div id="hint">▼ ПРОБЕЛ / ЛКМ</div>
+    </div>
+    <div id="choices" class="hidden"></div>
+  </div>
+
+  <div id="input-area" class="hidden">
+    <label>ИМЯ:
+      <input type="text" id="in-name" maxlength="30" autocomplete="off">
+    </label>
+    <label>ФАМИЛИЯ:
+      <input type="text" id="in-surname" maxlength="30" autocomplete="off">
+    </label>
+    <label>КЛАСС:
+      <input type="text" id="in-class" maxlength="10" autocomplete="off">
+    </label>
+    <button id="submit-info">ГОТОВО</button>
+  </div>
+</div>
+
+<div id="ach-toast" class="type-normal">
+  <div class="toast-icon" id="toast-icon">🏆</div>
+  <div class="toast-text">
+    <div class="toast-label">ДОСТИЖЕНИЕ ПОЛУЧЕНО</div>
+    <div class="toast-title" id="toast-title">Название</div>
+  </div>
+</div>
+
+<script>
+/* ============================================================= */
+/* ================== СИСТЕМА ДОСТИЖЕНИЙ ====================== */
+/* ============================================================= */
+const ALL_ACHIEVEMENTS = [
+  { id: "sleep_choice", title: "Соня",       desc: "Заснуть в раздевалке и попасться", icon: "😴", type: "normal" },
+  { id: "rude_choice",  title: "Грубиян",    desc: "Нагрубить учителю",                icon: "😤", type: "normal" },
+  { id: "tell_truth",   title: "Честный",    desc: "Сказать правду о себе",            icon: "✅", type: "normal" },
+  { id: "lie_choice",   title: "Лжец",       desc: "Соврать про Иванова Ваню",         icon: "🎭", type: "normal" },
+  { id: "wake_home",    title: "Новый день", desc: "Проснуться у себя дома",           icon: "🌅", type: "normal" },
+
+  { id: "humiliation",  title: "Получена доза унижения", desc: "Лидия Петровна позвонила твоим родителям", icon: "📞", type: "ending" },
+
+  { id: "ending_1", title: "КОНЦОВКА: ???", desc: "Секретная концовка №1", icon: "🔚", type: "ending", secret: true },
+  { id: "ending_2", title: "КОНЦОВКА: ???", desc: "Секретная концовка №2", icon: "🔚", type: "ending", secret: true },
+  { id: "ending_3", title: "КОНЦОВКА: ???", desc: "Секретная концовка №3", icon: "🔚", type: "ending", secret: true },
+
+  { id: "secret_1", title: "???", desc: "Секретное достижение", icon: "❓", type: "secret", secret: true },
+  { id: "secret_2", title: "???", desc: "Секретное достижение", icon: "❓", type: "secret", secret: true },
+
+  { id: "dlc_unlock", title: "Это точно конец?", desc: "Активировать секретное продолжение через код DLC", icon: "🎬", type: "secret", secret: true },
+];
+
+/* ============================================================= */
+/* ==================== СИСТЕМА СОХРАНЕНИЙ ==================== */
+/* ============================================================= */
+const SAVE_KEY     = "vnovel_save";
+const ACH_KEY      = "vnovel_achievements";
+const SETTINGS_KEY = "vnovel_settings";
+
+let playerInfo = { name: "", surname: "", cls: "" };
+
+function getSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || { sound: true, music: true };
+  } catch { return { sound: true, music: true }; }
+}
+function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+
+function getUnlocked() {
+  try { return JSON.parse(localStorage.getItem(ACH_KEY)) || []; }
+  catch { return []; }
+}
+function unlockAchievement(id) {
+  const list = getUnlocked();
+  if (!list.includes(id)) {
+    list.push(id);
+    localStorage.setItem(ACH_KEY, JSON.stringify(list));
+    const ach = ALL_ACHIEVEMENTS.find(a => a.id === id);
+    if (ach) showAchievementToast(ach);
+  }
+}
+
+function hasSave() { return localStorage.getItem(SAVE_KEY) !== null; }
+function getSave() {
+  try { return JSON.parse(localStorage.getItem(SAVE_KEY)); }
+  catch { return null; }
+}
+function writeSave(state) {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
+  catch(e) { console.warn("Не удалось сохранить:", e); }
+}
+function clearSave() { localStorage.removeItem(SAVE_KEY); }
+
+/* ============================================================= */
+/* ============ ВСПЛЫВАЮЩЕЕ УВЕДОМЛЕНИЕ (ТОСТ) ================ */
+/* ============================================================= */
+const achToastEl   = document.getElementById("ach-toast");
+const toastIconEl  = document.getElementById("toast-icon");
+const toastTitleEl = document.getElementById("toast-title");
+let toastTimer = null;
+
+function showAchievementToast(ach) {
+  if (toastTimer) clearTimeout(toastTimer);
+  toastIconEl.textContent  = ach.icon || "🏆";
+  toastTitleEl.textContent = ach.title;
+  achToastEl.classList.remove("type-normal", "type-ending", "type-secret");
+  achToastEl.classList.add("type-" + (ach.type || "normal"));
+  achToastEl.classList.add("show");
+  toastTimer = setTimeout(() => {
+    achToastEl.classList.remove("show");
+    toastTimer = null;
+  }, 3000);
+}
+
+/* ============================================================= */
+/* ==================== ГРАФ СЦЕНАРИЯ ========================= */
+/* ============================================================= */
+const nodes = {
+  start: {
+    type: "line",
+    speaker: "Татьяна Евгеньевна",
+    text: "-Ты чего тут ошиваешься! Школа уже как 5 часов закрыта!",
+    next: "choice1"
+  },
+
+  choice1: {
+    type: "choices",
+    options: [
+      { text: "Я случайно заснул в раздевалке, уже иду домой", next: "sleepLine1", ach: "sleep_choice" },
+      { text: "Какая тебе разница, что я тут делаю, вали отсюда", next: "rudeLine1", ach: "rude_choice" }
+    ]
+  },
+
+  sleepLine1: {
+    type: "line",
+    speaker: "Татьяна Евгеньевна",
+    text: "Вот в СССР мы не засыпали, а еще делали дз, а вы тикитокеры... тьфу...",
+    next: "sleepLine2"
+  },
+  sleepLine2: {
+    type: "line",
+    speaker: "Татьяна Евгеньевна",
+    text: "Ну ладно, я пошла домой и ты тоже бегом домой, а то уже ночь. ух... что то я сильно задержалась сегодня...",
+    next: "nightEnd"
+  },
+  nightEnd: {
+    type: "line",
+    speaker: "",
+    text: "Татьяна Евгеньевна уходит в темноту коридора. Ты остаёшься один.",
+    bg: "location1(1).jpg",
+    next: null,
+    button: { text: "ИДТИ ДАЛЬШЕ", next: "afterNight" }
+  },
+  afterNight: {
+    type: "line",
+    speaker: "",
+    text: "(Продолжение следует...)",
+    next: null
+  },
+
+  rudeLine1: {
+    type: "line",
+    speaker: "Татьяна Евгеньевна",
+    text: "ТЫ ЧТО ТАКОЕ ГОВОРИШЬ!? СЕЙЧАС К ЛИДИИ ПЕТРОВНЕ ПОЙДЕМ!",
+    next: "rudeLine2"
+  },
+  rudeLine2: {
+    type: "line",
+    speaker: "Татьяна Евгеньевна",
+    text: "Точно... Лидия Петровна же уже ушла... ТОГДА ГОВОРИ СВОЕ ИМЯ И ФАМИЛИЮ И КЛАСС!",
+    next: "choice2"
+  },
+  choice2: {
+    type: "choices",
+    options: [
+      { text: "Сказать своё настоящее имя, фамилию и класс", next: "inputPlayerInfo", ach: "tell_truth" },
+      { text: "Соврать — Иванов Ваня Лысикович 8Е", next: "lieResponse", ach: "lie_choice" }
+    ]
+  },
+  inputPlayerInfo: {
+    type: "input",
+    next: "afterInputResponse"
+  },
+
+  afterInputResponse: {
+    type: "line",
+    speaker: "Татьяна Евгеньевна",
+    text: () => `Так-так... ${playerInfo.surname} ${playerInfo.name}, ${playerInfo.cls}... Запомнила. Иди домой и больше не задерживайся. Я пошла домой и ты тоже!`,
+    next: "afterInputResponseAdvance"
+  },
+
+  afterInputResponseAdvance: {
+    type: "line",
+    bg: "location1(1).jpg",
+    next: null,
+    button: { text: "ИДТИ ДАЛЬШЕ", next: "monologue1" }
+  },
+
+  monologue1: {
+    type: "line",
+    speaker: "Вы",
+    text: "Как надоела эта школа, эти ебаные учителя... просто уже бесит... Ну хоть у Бескина все хорошо.",
+    bg: "black",
+    next: "wakeUp"
+  },
+
+  wakeUp: {
+    type: "line",
+    speaker: "",
+    text: "(вы проснулись у себя дома...)",
+    next: "morningRoom",
+    onEnter: () => unlockAchievement("wake_home")
+  },
+
+  /* ---- СПАЛЬНЯ, УТРО ---- */
+  morningRoom: {
+    type: "line",
+    speaker: "Вы",
+    text: "Новый день... Может скипнуть уроки?",
+    bg: "bedroom.jpg",
+    next: "phoneRing"
+  },
+  phoneRing: {
+    type: "line",
+    speaker: "",
+    text: "(Звонит телефон...)",
+    next: "phoneAnswer"
+  },
+  phoneAnswer: {
+    type: "line",
+    speaker: "Вы",
+    text: "Ало!",
+    next: "lidyaYells"
+  },
+  lidyaYells: {
+    type: "line",
+    speaker: "Лидия Петровна",
+    text: () => `${playerInfo.surname} ${playerInfo.name}, ЧТО ТЫ ВЧЕРА НОЧЬЮ ДЕЛАЛ В ШКОЛЕ, И ЗАЧЕМ ТЫ ПОСЛАЛ ТАТЬЯНУ ЕВГЕНЬЕВНУ?`,
+    next: "playerDenies"
+  },
+  playerDenies: {
+    type: "line",
+    speaker: "Вы",
+    text: "Что!? Я не кого не посылал!",
+    next: "lidyaThreatens"
+  },
+  lidyaThreatens: {
+    type: "line",
+    speaker: "Лидия Петровна",
+    text: "НЕ ВРИ! МНЕ ТАТЬЯНА ЕВГЕНЬЕВНА ВСЕ РАССКАЗАЛА! ВСЕ Я УЖЕ ПОГОВОРИЛА С ТВОИМИ РОДИТЕЛЯМИ!",
+    onEnter: () => unlockAchievement("humiliation"),
+    next: "callEnded"
+  },
+  callEnded: {
+    type: "line",
+    speaker: "",
+    text: "(Звонок завершен...)",
+    next: "afterCallChoice"
+  },
+  afterCallChoice: {
+    type: "choices",
+    options: [
+      { text: "Скипнуть уроки и остаться дома", next: "skipSchoolEnd" },
+      { text: "Пойти в школу", next: "goToSchoolYard" }
+    ]
+  },
+
+  /* ================== ВЕТКА "ПОЙТИ В ШКОЛУ" ================== */
+  goToSchoolYard: {
+    type: "line",
+    speaker: "Вы",
+    text: "Сейчас приду и начнутся эти крики, визги. Не хочу видеть эти сальные волосы учителей.",
+    bg: "school_yard.jpg",
+    next: "schoolYardBeskin"
+  },
+  schoolYardBeskin: {
+    type: "line",
+    speaker: "Вы",
+    text: "Ой, блять. Сегодня же еще и урок с Бескиным...",
+    next: "schoolYardScream"
+  },
+  schoolYardScream: {
+    type: "line",
+    speaker: "Вы",
+    text: "АААААААААААААА",
+    next: "schoolCorridor"
+  },
+
+  /* ---- ВНУТРИ ШКОЛЫ ---- */
+  schoolCorridor: {
+    type: "line",
+    speaker: "",
+    text: "(Продолжение следует...)",
+    bg: "school_corridor.jpg",
+    next: null
+  },
+
+  /* ---- ВЕТКА "СКИПНУТЬ УРОКИ" ---- */
+  skipSchoolEnd: {
+    type: "line",
+    speaker: "",
+    text: "(Продолжение следует...) — скипнуть уроки",
+    next: null
+  },
+
+  lieResponse: {
+    type: "line",
+    speaker: "Татьяна Евгеньевна",
+    text: "Иванов Ваня... Лысикович... 8Е... Хм, что-то я такого не помню. Ладно, иди уже.",
+    next: null
+  }
+};
+
+/* ============================================================= */
+/* ======================== ЭЛЕМЕНТЫ ========================== */
+/* ============================================================= */
+const dialogueBox   = document.getElementById("dialogue-box");
+const speakerEl     = document.getElementById("speaker");
+const textEl        = document.getElementById("text");
+const hintEl        = document.getElementById("hint");
+const choicesEl     = document.getElementById("choices");
+const inputArea     = document.getElementById("input-area");
+const bgEl          = document.getElementById("background");
+const gameEl        = document.getElementById("game");
+const mainMenuEl    = document.getElementById("main-menu");
+const btnStartEl    = document.getElementById("btn-start");
+const achPanel      = document.getElementById("achievements-panel");
+const achListEl     = document.getElementById("achievements-list");
+const settingsPanel = document.getElementById("settings-panel");
+
+const inName    = document.getElementById("in-name");
+const inSurname = document.getElementById("in-surname");
+const inClass   = document.getElementById("in-class");
+
+/* ============================================================= */
+/* ====================== СОСТОЯНИЕ =========================== */
+/* ============================================================= */
+let currentId   = "start";
+let state       = "line";
+let pendingNext = null;
+let currentBg   = "location1.jpg";
+
+/* ============================================================= */
+/* ======================== ФОН =============================== */
+/* ============================================================= */
+function setBackground(file) {
+  if (!file) return;
+  currentBg = file;
+  if (file === "black") {
+    bgEl.style.backgroundImage = "none";
+    bgEl.style.backgroundColor = "#000";
+    bgEl.style.filter = "none";
+    return;
+  }
+  bgEl.style.backgroundImage = `url("${file}")`;
+  bgEl.style.backgroundColor = "#1a1a1a";
+  bgEl.style.filter = "sepia(1) hue-rotate(90deg) saturate(3) brightness(0.8)";
+}
+
+function saveCurrentState() {
+  writeSave({
+    currentId: currentId,
+    playerInfo: { ...playerInfo },
+    bg: currentBg
+  });
+}
+
+/* ============================================================= */
+/* ========================= РЕНДЕР =========================== */
+/* ============================================================= */
+function render() {
+  const node = nodes[currentId];
+
+  if (!node) {
+    state = "end";
+    dialogueBox.classList.add("hidden");
+    choicesEl.classList.add("hidden");
+    inputArea.classList.add("hidden");
+    clearSave();
+    return;
+  }
+
+  if (node.bg) setBackground(node.bg);
+  if (node.onEnter) node.onEnter();
+
+  if (node.type === "line") {
+    state = "line";
+    pendingNext = node.next ?? null;
+
+    inputArea.classList.add("hidden");
+
+    if (node.text !== undefined && node.text !== null) {
+      dialogueBox.classList.remove("hidden");
+      speakerEl.textContent = node.speaker ? node.speaker + ":" : "";
+      textEl.textContent = (typeof node.text === "function") ? node.text() : node.text;
+    } else {
+      dialogueBox.classList.add("hidden");
+    }
+
+    if (node.button) {
+      hintEl.classList.add("hidden");
+      choicesEl.classList.remove("hidden");
+      choicesEl.innerHTML = "";
+
+      const btn = document.createElement("div");
+      btn.className = "next-btn";
+      btn.textContent = node.button.text;
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        goTo(node.button.next);
+      });
+      choicesEl.appendChild(btn);
+    } else {
+      if (node.text !== undefined && node.text !== null) {
+        hintEl.classList.remove("hidden");
+      } else {
+        hintEl.classList.add("hidden");
+      }
+      choicesEl.classList.add("hidden");
+    }
+  }
+  else if (node.type === "choices") {
+    state = "choices";
+
+    dialogueBox.classList.remove("hidden");
+    hintEl.classList.add("hidden");
+
+    inputArea.classList.add("hidden");
+    choicesEl.classList.remove("hidden");
+    choicesEl.innerHTML = "";
+
+    node.options.forEach(opt => {
+      const btn = document.createElement("div");
+      btn.className = "choice";
+      btn.textContent = opt.text;
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (opt.ach) unlockAchievement(opt.ach);
+        goTo(opt.next);
+      });
+      choicesEl.appendChild(btn);
+    });
+  }
+  else if (node.type === "input") {
+    state = "input";
+    pendingNext = node.next ?? null;
+
+    dialogueBox.classList.add("hidden");
+    choicesEl.classList.add("hidden");
+    hintEl.classList.add("hidden");
+
+    inputArea.classList.remove("hidden");
+
+    inName.value    = "";
+    inSurname.value = "";
+    inClass.value   = "";
+    setTimeout(() => inName.focus(), 50);
+  }
+
+  if (state !== "input" && state !== "end") saveCurrentState();
+}
+
+/* ============================================================= */
+/* ======================= ПЕРЕХОДЫ ========================== */
+/* ============================================================= */
+function goTo(id) {
+  currentId = id;
+  render();
+}
+
+function advance() {
+  if (state !== "line") return;
+  const node = nodes[currentId];
+  if (node && node.button) return;
+
+  if (pendingNext === null || pendingNext === undefined) {
+    currentId = null;
+    render();
+    return;
+  }
+  goTo(pendingNext);
+}
+
+/* ============================================================= */
+/* ================== ОБРАБОТЧИКИ КЛИКОВ ===================== */
+/* ============================================================= */
+gameEl.addEventListener("click", advance);
+
+window.addEventListener("keydown", (e) => {
+  if (state === "input") return;
+  if (e.code === "Space") { e.preventDefault(); advance(); }
+});
+
+document.getElementById("submit-info").addEventListener("click", (e) => {
+  e.stopPropagation();
+  const n = inName.value.trim();
+  const s = inSurname.value.trim();
+  const c = inClass.value.trim();
+  if (!n || !s || !c) {
+    alert("Заполни все поля: имя, фамилию и класс!");
+    return;
+  }
+  playerInfo.name    = n;
+  playerInfo.surname = s;
+  playerInfo.cls     = c;
+
+  if (pendingNext) goTo(pendingNext);
+  else { currentId = null; render(); }
+});
+
+[inName, inSurname, inClass].forEach(inp => {
+  inp.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.getElementById("submit-info").click();
+    }
+  });
+});
+
+/* ============================================================= */
+/* ================== ЛОГИКА ГЛАВНОГО МЕНЮ ==================== */
+/* ============================================================= */
+function refreshStartButton() {
+  if (hasSave()) {
+    btnStartEl.textContent = "ПРОДОЛЖИТЬ (вымирать...)";
+  } else {
+    btnStartEl.textContent = "НАЧАТЬ ИГРУ";
+  }
+}
+
+function startOrContinue() {
+  const save = getSave();
+  if (save) {
+    currentId    = save.currentId || "start";
+    playerInfo   = save.playerInfo || { name: "", surname: "", cls: "" };
+    currentBg    = save.bg || "location1.jpg";
+  } else {
+    currentId    = "start";
+    playerInfo   = { name: "", surname: "", cls: "" };
+    currentBg    = "location1.jpg";
+    setBackground("location1.jpg");
+  }
+  mainMenuEl.classList.add("hidden");
+  gameEl.classList.remove("hidden");
+  render();
+  if (currentBg) setBackground(currentBg);
+}
+
+function openPanel(name) {
+  document.getElementById(name + "-panel").classList.remove("hidden");
+}
+function closePanel(name) {
+  document.getElementById(name + "-panel").classList.add("hidden");
+}
+function openAchievements() {
+  renderAchievements();
+  openPanel("achievements");
+}
+function openSettings() {
+  renderSettings();
+  openPanel("settings");
+}
+
+btnStartEl.addEventListener("click", startOrContinue);
+document.getElementById("btn-achievements").addEventListener("click", openAchievements);
+document.getElementById("btn-settings").addEventListener("click", openSettings);
+
+/* ============================================================= */
+/* ==================== ДОСТИЖЕНИЯ =========================== */
+/* ============================================================= */
+function renderAchievements() {
+  const unlocked = getUnlocked();
+  achListEl.innerHTML = "";
+
+  const unlockedCount = ALL_ACHIEVEMENTS.filter(a => unlocked.includes(a.id)).length;
+
+  const counter = document.createElement("div");
+  counter.style.cssText = "color:#4ade80; font-size:24px; text-align:center; margin-bottom:14px; letter-spacing:2px; text-shadow:0 0 8px #4ade80;";
+  counter.textContent = `ОТКРЫТО: ${unlockedCount} / ${ALL_ACHIEVEMENTS.length}`;
+  achListEl.appendChild(counter);
+
+  ALL_ACHIEVEMENTS.forEach(a => {
+    const isUnlocked = unlocked.includes(a.id);
+    const typeClass  = "type-" + (a.type || "normal");
+
+    const row = document.createElement("div");
+    row.className = "ach " + typeClass + " " + (isUnlocked ? "unlocked" : "locked");
+
+    const icon = document.createElement("div");
+    icon.className = "ach-icon";
+    icon.textContent = isUnlocked ? a.icon : "🔒";
+
+    const text = document.createElement("div");
+    text.className = "ach-text";
+
+    const title = document.createElement("div");
+    title.className = "ach-title";
+    title.textContent = (a.secret && !isUnlocked) ? "???" : a.title;
+
+    const desc = document.createElement("div");
+    desc.className = "ach-desc";
+    desc.textContent = (a.secret && !isUnlocked) ? "Секретное достижение" : a.desc;
+
+    text.appendChild(title);
+    text.appendChild(desc);
+    row.appendChild(icon);
+    row.appendChild(text);
+    achListEl.appendChild(row);
+  });
+}
+
+/* ============================================================= */
+/* ===================== НАСТРОЙКИ =========================== */
+/* ============================================================= */
+function renderSettings() {
+  const s = getSettings();
+  document.getElementById("val-sound").textContent = s.sound ? "ВКЛ" : "ВЫКЛ";
+  document.getElementById("val-music").textContent = s.music ? "ВКЛ" : "ВЫКЛ";
+}
+
+document.querySelectorAll(".setting-row").forEach(row => {
+  row.addEventListener("click", () => {
+    const key = row.dataset.toggle;
+    const s = getSettings();
+    s[key] = !s[key];
+    saveSettings(s);
+    renderSettings();
+  });
+});
+
+function resetSaves() {
+  if (confirm("Удалить сохранения и достижения?")) {
+    clearSave();
+    localStorage.removeItem(ACH_KEY);
+    refreshStartButton();
+    alert("Сохранения и достижения сброшены.");
+  }
+}
+
+/* ============================================================= */
+/* ===================== СЕКРЕТНАЯ DLC ======================== */
+/* ============================================================= */
+const DLC_CODE = "272013";
+
+document.getElementById("btn-dlc").addEventListener("click", () => {
+  const area = document.getElementById("dlc-input-area");
+  if (area.classList.contains("hidden")) {
+    area.classList.remove("hidden");
+    document.getElementById("dlc-code").focus();
+  } else {
+    area.classList.add("hidden");
+  }
+});
+
+function checkDlc() {
+  const input = document.getElementById("dlc-code");
+  const code = input.value.trim();
+  if (code === DLC_CODE) {
+    unlockAchievement("dlc_unlock");
+    alert("🎬 DLC АКТИВИРОВАН: Это точно конец?\n\n(Секретное продолжение разблокировано — добавь его в сценарий.)");
+    input.value = "";
+    document.getElementById("dlc-input-area").classList.add("hidden");
+  } else {
+    input.classList.add("dlc-error");
+    setTimeout(() => input.classList.remove("dlc-error"), 350);
+  }
+}
+document.getElementById("dlc-code").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") checkDlc();
+});
+
+/* ============================================================= */
+/* ========================= СТАРТ ============================ */
+/* ============================================================= */
+refreshStartButton();
+</script>
+</body>
+</html>
